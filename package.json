@@ -1,0 +1,23 @@
+{
+    "name": "node-apigw",
+    "version": "0.1.1",
+    "description": "A Simplistic and easy to use API Gateway for backend services written in NodeJS",
+    "main": "src/api.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "start": "NODE_CONFIG_DIR=./config node src/app.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "@koa/cors": "^3.1.0",
+      "@koa/router": "^10.1.1",
+      "abort-controller": "^3.0.0",
+      "jsonwebtoken": "^8.5.1",
+      "koa": "^2.13.3",
+      "koa-bodyparser": "^4.3.0",
+      "koa-logger": "^3.2.1",
+      "node-fetch": "^2.6.5"
+    }
+  }
+  
