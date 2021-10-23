@@ -158,14 +158,15 @@ class APIGateway {
                 async (ctx) => {
 
                     let remotePath;
+                    
                     // Fetch URL params if any 
                     let parsedUrl = regexpOfPath.exec(ctx.request.url); 
                     
                     if (parsedUrl) {
-                        // Set remotePath to the actual requested URL with valid params
-                        remotePath = parsedUrl[0]; 
+                        // Set remotePath to the actual requested URL with valid params                        
+                        remotePath = endpoint.remoteLocation + parsedUrl[0]; 
                     } else {
-                        remotePath = endpoint.remotePath;
+                        remotePath = endpoint.remoteLocation + endpoint.remotePath;
                     }
                     
                     const controller = new AbortController();
