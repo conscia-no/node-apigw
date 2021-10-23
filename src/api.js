@@ -7,6 +7,7 @@ const bodyParser = require('koa-bodyparser');
 const cors = require('@koa/cors');
 const { authorizeJwtToken } = require('./lib/auth/jwt'); 
 const Logger = require('./lib/log');
+const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
 
 class APIGateway {
     constructor(config) {
@@ -114,6 +115,8 @@ class APIGateway {
             // Letting config be written as POST or post. 
             let method = endpoint.method.toLowerCase();
             
+            let regexpOfPath = pathToRegexp(endpoint.path);
+            
             router[method](
                 endpoint.name, 
                 endpoint.path, 
@@ -154,6 +157,16 @@ class APIGateway {
                 },
                 async (ctx) => {
 
+                    let remotePath;
+                    // Fetch URL params if any 
+                    let parsedUrl = regexpOfPath.exec(ctx.request.url); 
+                    
+                    if (parsedUrl) {
+                        // Set remotePath to the actual requested URL with valid params
+                        remotePath = parsedUrl[0]; 
+                    } else {
+                        remotePath = endpoint.remotePath;
+                    }
                     
                     const controller = new AbortController();
 
@@ -208,7 +221,7 @@ class APIGateway {
                                 }
                              
                             }
-                            response = await fetch(`${endpoint.remotePath}`, {
+                            response = await fetch(`${remotePath}`, {
                                 method: endpoint.method,
                                 body: JSON.stringify(ctx.request.body),
                                 headers: Object.assign({}, commonHeaders)
@@ -216,7 +229,7 @@ class APIGateway {
                         }
 
                         if (method == 'get' || method == 'delete') {
-                            response = await fetch(`${endpoint.remotePath}`, {
+                            response = await fetch(`${remotePath}`, {
                                 method: endpoint.method,
                                 headers: Object.assign({}, commonHeaders)
                             })
