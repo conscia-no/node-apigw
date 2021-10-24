@@ -239,10 +239,18 @@ class APIGateway {
                         
 
                         if (response.ok) {
+                            let returnData; 
                             let data = await response.json();
-                        
+                            
+                            if (endpoint.auth.jwt.signTokenData) {
+                                returnData = signJwtToken(data);
+                            } else {
+                                returnData = data;
+                            }
+                            
                             ctx.status = 200;
-                            ctx.body = data;
+                            ctx.body = returnData;
+                            
                         } else {
                             ctx.status = response.status;
                             // Add check and endpoint config parameter to shuffle in service error instead of statusText
