@@ -242,7 +242,7 @@ class APIGateway {
                             let returnData; 
                             let data = await response.json();
                             
-                            if (endpoint.auth.jwt.signTokenData) {
+                            if (endpoint?.auth?.jwt?.signTokenData) {
                                 returnData = signJwtToken(data);
                             } else {
                                 returnData = data;
