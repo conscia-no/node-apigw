@@ -240,11 +240,8 @@ class APIGateway {
 
                         if (response.ok) {
                             let returnData; 
-                            let data; 
                             
-                            if (response.body) {
-                                data = await response.json();
-                            }
+                            let data = await response.clone().json().catch(() => response.text());
                             
                             if (endpoint?.auth?.jwt?.signTokenData) {
                                 returnData = signJwtToken(data);
