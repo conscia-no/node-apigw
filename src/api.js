@@ -248,8 +248,11 @@ class APIGateway {
                                 returnData = data;
                             }
                             
-                            ctx.status = 200;
-                            ctx.body = returnData;
+                            ctx.status = response.status;
+                            
+                            if (data) {
+                                ctx.body = returnData;
+                            }
                             
                         } else {
                             ctx.status = response.status;
