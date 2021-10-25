@@ -240,7 +240,11 @@ class APIGateway {
 
                         if (response.ok) {
                             let returnData; 
-                            let data = await response.json();
+                            let data; 
+                            
+                            if (response.body) {
+                                data = await response.json();
+                            }
                             
                             if (endpoint?.auth?.jwt?.signTokenData) {
                                 returnData = signJwtToken(data);
@@ -250,7 +254,7 @@ class APIGateway {
                             
                             ctx.status = response.status;
                             
-                            if (data) {
+                            if (returnData) {
                                 ctx.body = returnData;
                             }
                             
