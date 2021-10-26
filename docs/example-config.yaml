@@ -1,0 +1,87 @@
+### 
+version: "1"
+baseUrl: "my.api.local"
+basePath: "/api/v1"
+port: 8080
+ssl:
+  enabled: false
+  port: 8443
+  #privateKey: myprivatekey.pem
+  #cert_file: mycert.pem
+
+#
+# Enable health checking of the API 
+#
+health:
+  probe:
+    enabled: true
+
+#
+# Logging
+#
+log: 
+  enabled: true
+  outputs:
+    console: true
+
+#
+# Documentation
+#
+docs:
+  enabled: true
+  redirect: true # Enabling this will redirect the base route / to /docs
+
+#
+# Authentication and Authorization
+#
+auth:
+  jwt:
+    enabled: true
+    secretKey: secretkeys
+    endpoints:
+      validate: /auth/token/validate
+
+  oauth:
+    enabled: true
+    azure:
+      clientId: myapigw
+      clientSecret: hallelujah123
+      redirectUri: /auth/azure/oauth/redirect
+      tokenUri: https://login.microsoftonline.com/tenant/oauth2/v2.0/token
+    google:
+
+
+
+
+### Endpoint Configuration ###
+endpoints:
+  - name: login
+    path: /auth/login
+    method: POST
+    remotePath: http://localhost:3001/login
+    auth:
+      jwt:
+        protect: false
+        signTokenData: true
+    body:
+      required:
+        - username: string
+        - password: string
+    timeout: 1000
+
+  - name: getUsers
+    path: /system/user
+    method: GET
+    remotePath: http://localhost:3000/user
+    auth:
+      enabled: true
+      jwt:
+        protect: true 
+
+  - name: registerUser
+    path: /register
+    method: POST
+    remotePath: http://localhost:3000/user/register
+    body:
+      required:
+        - email

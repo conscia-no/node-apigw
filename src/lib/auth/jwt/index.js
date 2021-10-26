@@ -22,10 +22,12 @@ const authorizeJwtToken = async (token) => {
 
 const signJwtToken = async (tokenData) => {
 
+    let expiresIn = config.get('auth.jwt.expiresIn') || '24h';
+
     const token = jwt.sign(
         tokenData, 
         config.get('auth.jwt.secretKey'),
-        { expiresIn: "2h"});
+        { expiresIn: expiresIn });
 
     return token;
 }

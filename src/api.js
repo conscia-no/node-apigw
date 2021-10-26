@@ -6,7 +6,11 @@ const koaLogger = require('koa-logger');
 const bodyParser = require('koa-bodyparser');
 const cors = require('@koa/cors');
 const Logger = require('./lib/log');
+<<<<<<< HEAD
 const { enforceAuth } = require('./lib/auth');
+=======
+const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
+>>>>>>> e310ed6f74b7e858a548538eb8d7f394c38c2c5d
 
 class APIGateway {
     constructor(config) {
@@ -114,6 +118,8 @@ class APIGateway {
             // Letting config be written as POST or post. 
             let method = endpoint.method.toLowerCase();
             
+            let regexpOfPath = pathToRegexp(endpoint.path);
+            
             router[method](
                 endpoint.name, 
                 endpoint.path, 
@@ -133,6 +139,17 @@ class APIGateway {
                 // END: Middleware
                 async (ctx) => {
 
+                    let remotePath;
+                    
+                    // Fetch URL params if any 
+                    let parsedUrl = regexpOfPath.exec(ctx.request.url); 
+                    
+                    if (parsedUrl) {
+                        // Set remotePath to the actual requested URL with valid params                        
+                        remotePath = endpoint.remoteLocation + parsedUrl[0]; 
+                    } else {
+                        remotePath = endpoint.remoteLocation + endpoint.remotePath;
+                    }
                     
                     const controller = new AbortController();
 
@@ -187,7 +204,7 @@ class APIGateway {
                                 }
                              
                             }
-                            response = await fetch(`${endpoint.remotePath}`, {
+                            response = await fetch(`${remotePath}`, {
                                 method: endpoint.method,
                                 body: JSON.stringify(ctx.request.body),
                                 headers: Object.assign({}, commonHeaders)
@@ -195,7 +212,7 @@ class APIGateway {
                         }
 
                         if (method == 'get' || method == 'delete') {
-                            response = await fetch(`${endpoint.remotePath}`, {
+                            response = await fetch(`${remotePath}`, {
                                 method: endpoint.method,
                                 headers: Object.assign({}, commonHeaders)
                             })
@@ -204,10 +221,22 @@ class APIGateway {
                         
 
                         if (response.ok) {
-                            let data = await response.json();
-                        
-                            ctx.status = 200;
-                            ctx.body = data;
+                            let returnData; 
+                            
+                            let data = await response.clone().json().catch(() => response.text());
+                            
+                            if (endpoint?.auth?.jwt?.signTokenData) {
+                                returnData = signJwtToken(data);
+                            } else {
+                                returnData = data;
+                            }
+                            
+                            ctx.status = response.status;
+                            
+                            if (returnData) {
+                                ctx.body = returnData;
+                            }
+                            
                         } else {
                             ctx.status = response.status;
                             // Add check and endpoint config parameter to shuffle in service error instead of statusText
