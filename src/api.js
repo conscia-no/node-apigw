@@ -5,8 +5,8 @@ const AbortController = require('abort-controller');
 const koaLogger = require('koa-logger');
 const bodyParser = require('koa-bodyparser');
 const cors = require('@koa/cors');
-const { authorizeJwtToken } = require('./lib/auth/jwt'); 
 const Logger = require('./lib/log');
+const { enforceAuth } = require('./lib/auth');
 
 class APIGateway {
     constructor(config) {
@@ -117,41 +117,20 @@ class APIGateway {
             router[method](
                 endpoint.name, 
                 endpoint.path, 
+
                 // If endpoint has authentication we catch in this middleware
                 async (ctx, next) => {
 
-                    // Is authentication for the endpoint configured?
-                    if (endpoint.auth) {
-                        
-                        // JWT
-                        if (endpoint.auth?.jwt?.protect) {
-                            // Check if header exists
-                            const authHeader = ctx.get("Authorization");
-                        
-                            if (!authHeader) {
-                                ctx.status = 401;
-                                ctx.body = "missing authorization header"
-                                return; 
-                            }
-
-                            const token = authHeader.split(" ")[1];
-
-                            try {
-                                await authorizeJwtToken(token);
-                                
-                            } catch (authorizeTokenError) {
-                                ctx.status = 500;
-                                ctx.body = "error in validating jwt token"
-                                return;
-                            }
-                            return await next();
-                        } else {
-                            return await next();
-                        }
-                    } 
+                    try {
+                        await enforceAuth(ctx, endpoint);
+                    } catch (authError) {
+                        ctx.status = authError.status;
+                        return;
+                    }
 
                     return await next();
                 },
+                // END: Middleware
                 async (ctx) => {
 
                     
